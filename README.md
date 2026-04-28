@@ -5,6 +5,7 @@ Production-style country question answering service built with:
 - `FastAPI`
 - `LangGraph`
 - `REST Countries API`
+- `OpenAI API` for intent extraction and answer synthesis when configured
 
 The app answers grounded questions about country data such as:
 
@@ -45,6 +46,13 @@ Supported behaviors:
 - invalid country handling
 - unsupported question handling
 - ambiguous country handling such as `Congo`
+
+LLM-backed behavior:
+
+- if `OPENAI_API_KEY` is set, the app uses the OpenAI API for:
+  - intent / field identification
+  - answer synthesis
+- if `OPENAI_API_KEY` is not set, the app falls back to deterministic local logic
 
 ## Architecture
 
@@ -99,7 +107,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-3. Start the app:
+3. Optional: enable OpenAI-backed mode
+
+```bash
+export OPENAI_API_KEY="your_key_here"
+export OPENAI_MODEL="gpt-4o-mini"
+```
+
+4. Start the app:
 
 ```bash
 uvicorn app.main:app --reload
@@ -161,6 +176,9 @@ Two deployment options are already prepared:
   - `pip install -r requirements.txt`
 - start command:
   - `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- to enable OpenAI-backed mode on Render, add environment variables:
+  - `OPENAI_API_KEY`
+  - optional: `OPENAI_MODEL` with value `gpt-4o-mini`
 
 ### Docker
 
@@ -178,8 +196,8 @@ docker run -p 8000:8000 country-information-ai-agent
 
 ## Known Limitations
 
-- intent extraction is deterministic and pattern-based, not LLM-based
-- unsupported phrasing outside handled patterns may fail country extraction
+- if no OpenAI API key is configured, the app uses deterministic fallback logic
+- fallback extraction supports common question patterns but not every phrasing variation
 - answers are limited to fields exposed by REST Countries
 - hosting link and walkthrough video still need to be created outside this environment
 

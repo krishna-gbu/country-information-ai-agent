@@ -14,29 +14,6 @@ class TestGraphNodes(unittest.TestCase):
         result = validate_input({"question": "  What is the population of Germany?  "})
         self.assertEqual(result, {"question": "What is the population of Germany?"})
 
-    def test_identify_population_question(self) -> None:
-        result = identify_intent_and_fields({"question": "What is the population of Germany?"})
-        self.assertEqual(result["country_name"], "Germany")
-        self.assertEqual(result["requested_fields"], ["population"])
-        self.assertTrue(result["intent_supported"])
-
-    def test_identify_currency_question(self) -> None:
-        result = identify_intent_and_fields({"question": "What currency does Japan use?"})
-        self.assertEqual(result["country_name"], "Japan")
-        self.assertEqual(result["requested_fields"], ["currency"])
-        self.assertTrue(result["intent_supported"])
-
-    def test_identify_languages_question(self) -> None:
-        result = identify_intent_and_fields({"question": "What languages are spoken in India?"})
-        self.assertEqual(result["country_name"], "India")
-        self.assertEqual(result["requested_fields"], ["languages"])
-        self.assertTrue(result["intent_supported"])
-
-    def test_unsupported_question(self) -> None:
-        result = identify_intent_and_fields({"question": "Who is the president of Germany?"})
-        self.assertFalse(result["intent_supported"])
-        self.assertEqual(result["error"], "Unsupported question.")
-
     def test_resolve_ambiguous_country(self) -> None:
         dr_congo = NormalizedCountryData(common_name="DR Congo")
         republic_of_congo = NormalizedCountryData(common_name="Republic of the Congo")
@@ -50,13 +27,38 @@ class TestGraphNodes(unittest.TestCase):
 
         self.assertIn("Ambiguous country name.", result["error"])
 
-    def test_synthesize_population_answer(self) -> None:
+ 
+class TestGraphAsyncNodes(unittest.IsolatedAsyncioTestCase):
+    async def test_identify_population_question(self) -> None:
+        result = await identify_intent_and_fields({"question": "What is the population of Germany?"})
+        self.assertEqual(result["country_name"], "Germany")
+        self.assertEqual(result["requested_fields"], ["population"])
+        self.assertTrue(result["intent_supported"])
+
+    async def test_identify_currency_question(self) -> None:
+        result = await identify_intent_and_fields({"question": "What currency does Japan use?"})
+        self.assertEqual(result["country_name"], "Japan")
+        self.assertEqual(result["requested_fields"], ["currency"])
+        self.assertTrue(result["intent_supported"])
+
+    async def test_identify_languages_question(self) -> None:
+        result = await identify_intent_and_fields({"question": "What languages are spoken in India?"})
+        self.assertEqual(result["country_name"], "India")
+        self.assertEqual(result["requested_fields"], ["languages"])
+        self.assertTrue(result["intent_supported"])
+
+    async def test_unsupported_question(self) -> None:
+        result = await identify_intent_and_fields({"question": "Who is the president of Germany?"})
+        self.assertFalse(result["intent_supported"])
+        self.assertEqual(result["error"], "Unsupported question.")
+
+    async def test_synthesize_population_answer(self) -> None:
         germany = NormalizedCountryData(
             common_name="Germany",
             population=83491249,
         )
 
-        result = synthesize_answer(
+        result = await synthesize_answer(
             {
                 "selected_country": germany,
                 "requested_fields": ["population"],
