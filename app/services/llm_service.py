@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 import httpx
 
@@ -8,6 +9,7 @@ from app.models.schema import ExtractedIntent, NormalizedCountryData
 
 class OpenAIService:
     def __init__(self) -> None:
+        self._load_dotenv()
         self.api_key = os.getenv("OPENAI_API_KEY")
         self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         self.base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
@@ -16,6 +18,21 @@ class OpenAIService:
     @property
     def is_configured(self) -> bool:
         return bool(self.api_key)
+
+    def _load_dotenv(self) -> None:
+        dotenv_path = Path(__file__).resolve().parents[2] / ".env"
+        if not dotenv_path.exists():
+            return
+
+        for line in dotenv_path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or "=" not in stripped:
+                continue
+
+            key, value = stripped.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            os.environ.setdefault(key, value)
 
     async def extract_intent(self, question: str) -> ExtractedIntent | None:
         if not self.is_configured:

@@ -23,6 +23,12 @@ def get_error_code(message: str) -> str:
         return "AMBIGUOUS_COUNTRY"
     if "identify the country" in lowered:
         return "COUNTRY_IDENTIFICATION_FAILED"
+    if "llm service is not configured" in lowered:
+        return "LLM_NOT_CONFIGURED"
+    if "llm intent extraction failed" in lowered:
+        return "LLM_INTENT_EXTRACTION_FAILED"
+    if "llm answer synthesis failed" in lowered:
+        return "LLM_ANSWER_SYNTHESIS_FAILED"
 
     return "GRAPH_ERROR"
 

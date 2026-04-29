@@ -3,32 +3,36 @@ from app.services.country_service import CountryService
 from app.services.llm_service import OpenAIService
 
 
-
-def validate_input(state:AgentState)->AgentState:
-    question = state.get("question","").strip()
+def validate_input(state: AgentState) -> AgentState:
+    question = state.get("question", "").strip()
     if not question:
-        return {"error":"Question is required"}
-    return {"question":question}
+        return {"error": "Question is required"}
+    return {"question": question}
 
 
 def _fallback_identify_intent_and_fields(question: str) -> AgentState:
-    cleaned_question = question.replace("?", "").strip()
-    lower_question = cleaned_question.lower()
+    cleaned_question = (
+        question.replace("?", " ")
+        .replace("!", " ")
+        .replace(".", " ")
+        .strip()
+    )
+    lower_question = " ".join(cleaned_question.lower().split())
 
     requested_fields = []
 
     if "capital" in lower_question:
         requested_fields.append("capital")
-    if "population" in lower_question:
+    if "population" in lower_question or "jansankhya" in lower_question:
         requested_fields.append("population")
     if "currency" in lower_question or "currencies" in lower_question:
         requested_fields.append("currency")
-    if "language" in lower_question or "languages" in lower_question:
+    if "language" in lower_question or "languages" in lower_question or "bhasha" in lower_question:
         requested_fields.append("languages")
+    if "region" in lower_question:
+        requested_fields.append("region")
     if "subregion" in lower_question:
         requested_fields.append("subregion")
-    elif "region" in lower_question:
-        requested_fields.append("region")
 
     if not requested_fields:
         return {
@@ -45,6 +49,11 @@ def _fallback_identify_intent_and_fields(question: str) -> AgentState:
         country_name = cleaned_question[start:end].strip()
     elif " in " in lower_question:
         country_name = cleaned_question.rsplit(" in ", 1)[1].strip()
+    else:
+        for separator in (" ke ", " ki ", " ka "):
+            if separator in lower_question:
+                country_name = cleaned_question.split(separator, 1)[0].strip()
+                break
 
     if not country_name:
         return {
@@ -92,8 +101,7 @@ def _fallback_synthesize_answer(selected_country, requested_fields: list[str]) -
     return f"{selected_country.common_name} - " + "; ".join(parts)
 
 
-
-async def identify_intent_and_fields(state:AgentState)->AgentState:
+async def identify_intent_and_fields(state: AgentState) -> AgentState:
     question = state.get("question", "").strip()
     llm_service = OpenAIService()
 
@@ -131,7 +139,6 @@ async def identify_intent_and_fields(state:AgentState)->AgentState:
     return _fallback_identify_intent_and_fields(question)
 
 
-
 async def fetch_country_data(state: AgentState) -> AgentState:
     if state.get("error"):
         return {}
@@ -147,7 +154,6 @@ async def fetch_country_data(state: AgentState) -> AgentState:
     country_candidates = await service.lookup_by_name(country_name)
 
     return {"country_candidates": country_candidates}
-
 
 
 def resolve_match_or_error(state: AgentState) -> AgentState:
@@ -175,7 +181,6 @@ def resolve_match_or_error(state: AgentState) -> AgentState:
 
     matched_names = ", ".join(candidate.common_name for candidate in country_candidates[:5])
     return {"error": f"Ambiguous country name. Matches found: {matched_names}."}
-
 
 
 async def synthesize_answer(state: AgentState) -> AgentState:
