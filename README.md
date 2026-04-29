@@ -13,6 +13,12 @@ The app answers grounded questions about country data such as:
 - `What currency does Japan use?`
 - `What is the capital and population of Brazil?`
 
+## Live Links
+
+- deployed app: `https://country-information-ai-agent-8aag.onrender.com/`
+- health check: `https://country-information-ai-agent-8aag.onrender.com/health`
+- repository: `https://github.com/krishna-gbu/country-information-ai-agent`
+
 ## Assignment Fit
 
 This implementation satisfies the core assignment requirements:
@@ -120,7 +126,7 @@ export OPENAI_MODEL="gpt-4o-mini"
 uvicorn app.main:app --reload
 ```
 
-4. Open:
+5. Open:
 
 - `http://127.0.0.1:8000/`
 - `http://127.0.0.1:8000/health`
@@ -199,7 +205,7 @@ docker run -p 8000:8000 country-information-ai-agent
 - if no OpenAI API key is configured, the app uses deterministic fallback logic
 - fallback extraction supports common question patterns but not every phrasing variation
 - answers are limited to fields exposed by REST Countries
-- hosting link and walkthrough video still need to be created outside this environment
+- walkthrough video still needs to be recorded separately
 
 ## Useful Docs
 
